@@ -1,0 +1,4 @@
+pandas
+paramiko
+pycrypto==2.6.1
+tabulate
