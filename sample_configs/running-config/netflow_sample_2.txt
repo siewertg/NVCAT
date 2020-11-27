@@ -1,0 +1,116 @@
+show run
+Tue Sep 29 10:39:40.082 EDT
+Building configuration...
+!
+flow exporter-map ExporterName
+ version v9
+ !
+ dscp 40
+ transport udp 2055
+ source InterfaceName
+ destination 121.166.191.12 vrf VRF_1
+!
+flow exporter-map ExporterName2
+ version v9
+ !
+ transport udp 2055
+ source InterfaceName
+ destination 121.166.191.12 vrf VRF_1
+!
+flow monitor-map MonitorName
+ record ipv4
+ exporter ExporterName2
+ cache timeout active 60
+!
+flow monitor-map MonitorName-IPv4
+ record ipv4
+ exporter ExporterName
+ cache entries 500000
+ cache timeout active 60
+!
+flow monitor-map MonitorName-IPv6
+ record ipv6
+ exporter ExporterName
+ cache entries 500000
+ cache timeout active 60
+!
+sampler-map SamplerName
+ random 1 out-of 100
+!
+interface InterfaceName2
+ description Description
+ mtu 9192
+ vrf VRF_02
+ ipv4 address 66.76.33.23 0.0.0.0
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+ flow ipv6 monitor MonitorName-IPv6 sampler SamplerName ingress
+ ipv4 access-group iname2-input-filter ingress
+ ipv4 access-group iname2-output-filter egress
+!
+interface InterfaceName3
+ description Description
+ mtu 9192
+ vrf VRF_1
+ ipv4 address 254.127.11.137 0.0.0.0
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+!
+interface InterfaceName4
+ description Description
+ vrf VRF_03
+ ipv4 address 97.212.147.188 0.0.0.0
+ ipv6 address 9f5a:d7d9:f1fb:50c::1/64
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+ flow ipv6 monitor MonitorName-IPv6 sampler SamplerName ingress
+!
+interface InterfaceName5
+ description Description
+ mtu 9192
+ vrf VRF_04
+ ipv4 address 131.249.199.3 0.0.0.0
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+ flow ipv6 monitor MonitorName-IPv6 sampler SamplerName ingress
+ ipv4 access-group iname5-input-filter ingress
+ ipv4 access-group iname5-output-filter egress
+!
+interface InterfaceName6
+ description Description
+ mtu 9192
+ vrf VRF_04
+ ipv4 address 132.250.200.4 0.0.0.0
+ ipv6 address 74f6:51f4:8d00:b187::1/64
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+ flow ipv6 monitor MonitorName-IPv6 sampler SamplerName ingress
+ ipv4 access-group iname5-input-filter ingress
+ ipv4 access-group iname5-output-filter egress
+!
+interface InterfaceName7
+ description Description
+ mtu 9192
+ vrf VRF_04
+ ipv4 address 133.251.201.5 0.0.0.0
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+ ipv4 access-group iname5-input-filter ingress
+ ipv4 access-group iname5-output-filter egress
+!
+interface InterfaceName8
+ description Description
+ mtu 9192
+ vrf VRF_04
+ ipv4 address 134.252.202.6 0.0.0.0
+ ipv6 address 74f8:51f6:8d02:b189::1/64
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+ flow ipv6 monitor MonitorName-IPv6 sampler SamplerName ingress
+ ipv4 access-group iname5-input-filter ingress
+ ipv4 access-group iname5-output-filter egress
+!
+interface InterfaceName9
+ description Description
+ mtu 9192
+ vrf VRF_04
+ ipv4 address 135.253.203.7 0.0.0.0
+ flow ipv4 monitor MonitorName-IPv4 sampler SamplerName ingress
+ ipv4 access-group iname5-input-filter ingress
+ ipv4 access-group iname5-output-filter egress
+!
+ssh timeout 60
+end
