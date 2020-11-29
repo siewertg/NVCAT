@@ -6,4 +6,4 @@
 `pip3 install -r requirements.txt`
 
 ## User Survey
-[Link]
+[Take the survey](https://forms.gle/DCXjw9e8rBKjgFqA6).
