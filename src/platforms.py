@@ -1,3 +1,4 @@
+# Check supported-platforms.txt to populate platform selection dropdown menu
 def get_platforms():
     platforms = { "Router": [], "Switch": [], "Firewall": [] }
     with open("supported-platforms.txt", 'r') as f:

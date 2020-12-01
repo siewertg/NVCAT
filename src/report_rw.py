@@ -4,6 +4,7 @@ from Crypto.Cipher import AES
 from Crypto.Random import get_random_bytes
 from sql_helper import *
 
+# Write report to file, encrypt under password if needed
 def write_report(config_file, report_file, report_text, results_csv, pwd=None):
     if not pwd:
         with open(report_file, 'w') as wf:
@@ -34,6 +35,7 @@ def write_report(config_file, report_file, report_text, results_csv, pwd=None):
     sql_insert(con, row)
     con.close()
 
+# Read report file, decrypting if needed
 def read_report(report_file, pwd=None):
     if pwd:
         pwd_hash = hashlib.sha256(
@@ -64,6 +66,7 @@ def read_report(report_file, pwd=None):
     else:
         return None
 
+# Check if report is stored in ciphertext or plaintext
 def check_report(report_file):
     con = sql_connection()
     row = sql_fetch(con, report_file)

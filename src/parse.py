@@ -1,6 +1,7 @@
 import paramiko
 import re
 
+# Check configuration for SPAN
 def span(sections):
     regex = {"interface": re.compile("^interface (.+)\n"),
              "ipv4_addr": re.compile("address ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"),
@@ -103,6 +104,7 @@ def span(sections):
 
     return results
 
+# Check configuration for NetFlow
 def netflow(sections):
     regex = {"interface": re.compile("^interface (.+)\n"),
              "ipv4_addr": re.compile("address ([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)"),
@@ -201,8 +203,9 @@ def netflow(sections):
     results["Score"] = (netflow_count, interface_count)
     return results
 
+# Check configuration for HTTP
 def http(sections):
-    regex = {"http": re.compile("^http server enable")}
+    regex = {"http": re.compile("http server enable")}
     results = {"HTTP Enabled?": ["No"]}
     for section in sections:
         if regex["http"].search(section):
@@ -212,6 +215,7 @@ def http(sections):
     results["Score"] = "Pass"
     return results
 
+# Check firewall ACL for insecure entries
 def acl(lines):
     regex = {"permit_ip": re.compile("access-list (.*) permit ip"),
             "permit_tcp_any": re.compile("access-list (.*) permit tcp any"),
@@ -252,6 +256,7 @@ def acl(lines):
 
     return results
 
+# Fix width of lines for ACL report
 def fix_width(s, max_len):
     l = s.split('\n')
     if len(l[-1]) > max_len:
@@ -262,6 +267,7 @@ def fix_width(s, max_len):
         l[-1] = l[-1][:i]+'\n'+l[-1][-len(l[-1])+i:]
     return '\n'.join(l)
 
+# Split configuration into sections
 def get_sections(lines):
     regex = {"section": re.compile("^!(.*)\n")}
     sections = []
@@ -279,13 +285,15 @@ def get_sections(lines):
     sections.append("".join(lines[i:]))
     return sections
 
+# Get text to parse locally
 def get_sections_local(specs):
     with open(specs["config"], 'r') as f:
         lines = f.readlines()
-        if specs["search"] == ["ACL Values"]:
+        if specs["search"] == ["ACL Entries"]:
             return lines
         return get_sections(lines)
 
+# Get text to parse remotely
 def get_sections_remote(specs):
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -299,16 +307,17 @@ def get_sections_remote(specs):
         key = paramiko.RSAKey.from_private_key_file(specs["ssh_key_file"])
         client.connect(hostname=specs["ip_address"], pkey=key)
     cmd = "show running-config"
-    if "ACL Values" in specs["search"]:
+    if "ACL Entries" in specs["search"]:
         cmd = "show access-list"
     stdin, stdout, stderr = client.exec_command(cmd)
     config = stdout.read().decode("utf-8")
-    if "ACL Values" in specs["search"]:
+    if "ACL Entries" in specs["search"]:
         return config.split('\n')
     return get_sections(config.split('\n'))
 
+# Call appropriate parsing function
 def get_results(item, sections):
-    if item == "ACL Values":
+    if item == "ACL Entries":
         return acl(sections)
     if item == "NetFlow":
         return netflow(sections)
@@ -317,6 +326,7 @@ def get_results(item, sections):
     if item == "HTTP":
         return http(sections)
 
+# Obtain parsing/assessment results
 def parse_config(specs):
     if specs["local"]:
         sections = get_sections_local(specs)

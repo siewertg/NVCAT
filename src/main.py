@@ -26,9 +26,9 @@ PASSWORD_PROTECTION = True
 PROMPT = ("Select device type.")
 DEVICE_TYPES = ["Router", "Switch", "Firewall"]
 PLATFORMS = get_platforms()
-LOOK_FOR = {"Router":   ["NetFlow", "SPAN", "HTTP"],
+LOOK_FOR = {"Router":   ["NetFlow", "HTTP"],
             "Switch":   ["NetFlow", "SPAN", "HTTP"],
-            "Firewall": ["ACL Values"]}
+            "Firewall": ["ACL Entries"]}
 
 W = 300
 H = 200
@@ -77,6 +77,7 @@ class App():
         self.root.resizable(False, False)
         self.root.mainloop()
 
+    # Platform select page setup
     def platform_select(self):
         selection = self.choice.get() - 1
         if selection == -1:
@@ -106,6 +107,7 @@ class App():
         self.dropdownList.place(x=10, y=50)
         self.nextBtn["command"] = self.look_for_select
 
+    # Check for _ page setup
     def look_for_select(self):
         selection = self.platformVar.get()
         if not selection:
@@ -127,6 +129,7 @@ class App():
             self.cBtn[i].place(x=30, y=30+20*i)
         self.nextBtn["command"] = self.local_remote_select
 
+    # Select data retrieval method page setup
     def local_remote_select(self):
         if 1 not in [x.get() for x in self.cVar]:
             return
@@ -144,6 +147,7 @@ class App():
         self.introMsg["text"] = "Select local or remote data retrieval."
         self.nextBtn["command"] = self.process_local_remote
 
+    # Process data retrieval method selection
     def process_local_remote(self):
         selection = self.choice.get() - 1
         if selection not in [0, 1]:
@@ -156,6 +160,7 @@ class App():
             self.specs["config"] = None
             self.remote_ip_address()
 
+    # Enter IP address page setup
     def remote_ip_address(self):
         for btn in self.rBtn:
             btn.place_forget()
@@ -168,6 +173,7 @@ class App():
         self.IPAddressEntry.place(x=90, y=50)
         self.nextBtn["command"] = self.remote_authentication
 
+    # Select authentication method page setup
     def remote_authentication(self):
         IPAddressRegex = re.compile("([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)")
         if not self.IPAddressEntry.get():
@@ -185,6 +191,7 @@ class App():
             self.rBtn[i].place(x=30, y=30+20*i)
         self.nextBtn["command"] = self.remote_process_auth
 
+    # Process authentication method selection
     def remote_process_auth(self):
         selection = self.choice.get() - 1
         if selection not in [0, 1]:
@@ -198,6 +205,7 @@ class App():
         elif self.specs["authentication"] == "ssh_key":
             self.remote_ssh_key()
 
+    # Enter SSH username/password credentials page setup
     def remote_ssh_password(self):
         self.introMsg["text"] = "Enter username and password."
         self.remoteUserMsg = Message(self.root, text="Username:",
@@ -214,6 +222,7 @@ class App():
         self.remotePwdEntry.place(x=135, y=65)
         self.nextBtn["command"] = self.report_select
 
+    # Enter SSH private key filepath page setup
     def remote_ssh_key(self):
         self.introMsg["text"] = "Specify SSH private key file. You must have already added your SSH public key to the network device."
         self.pathEntry = Entry(self.root, highlightbackground=ROOT_COLOR,
@@ -225,6 +234,7 @@ class App():
         self.dialogBtn.place(x=115, y=65)
         self.nextBtn["command"] = self.report_select
 
+    # Select SSH key file dialog
     def remote_ssh_key_file_dialog(self):
         self.specs["ssh_key_file"] = filedialog.askopenfilename()
         if not self.specs["ssh_key_file"]:
@@ -234,12 +244,14 @@ class App():
         self.pathEntry["state"] = DISABLED
         self.dialogBtn["state"] = DISABLED
 
+    # Select individual/batch analysis page setup
     def batch_select(self):
         self.rBtn[0]["text"] = "Individual"
         self.rBtn[1]["text"] = "Batch"
         self.introMsg["text"] = "Select individual or batch analysis."
         self.nextBtn["command"] = self.config_select
 
+    # Specify source file(s) page setup
     def config_select(self):
         selection = self.choice.get() - 1
         if selection not in [0, 1]:
@@ -259,6 +271,7 @@ class App():
         self.dialogBtn.place(x=115, y=50)
         self.nextBtn["command"] = self.report_select
 
+    # Select file or folder dialog
     def config_dialog(self):
         if self.specs["batch"]:
             self.specs["config"] = filedialog.askdirectory()
@@ -271,6 +284,7 @@ class App():
         self.pathEntry["state"] = DISABLED
         self.dialogBtn["state"] = DISABLED
 
+    # Specify destination file/folder page setup
     def report_select(self):
         if not self.specs["batch"]:
             if (self.specs["local"] or self.specs["authentication"] == "ssh_key") and \
@@ -311,7 +325,8 @@ class App():
         self.pathEntry.delete(0, "end")
         self.dialogBtn["command"] = self.report_dialog
         self.nextBtn["command"] = self.enter_pwd
-            
+    
+    # Select file or folder dialog (for writing)
     def report_dialog(self):
         if self.specs["batch"]:
             self.specs["report"] = filedialog.askdirectory()
@@ -323,6 +338,7 @@ class App():
         self.pathEntry["state"] = DISABLED
         self.dialogBtn["state"] = DISABLED
 
+    # Enter password page setup (if needed)
     def enter_pwd(self):
         if self.specs["batch"]:
             if not self.pathEntry.get():
@@ -360,6 +376,7 @@ class App():
         else:
             self.read_report()
 
+    # Return error if needed, generate report
     def store_pwd(self):
         self.pwd1, self.pwd2 = self.pwd1Entry.get(), self.pwd2Entry.get()
         if not self.pwd1 or not self.pwd2:
@@ -378,8 +395,9 @@ class App():
         self.generateReportBtn.place(x=100, y=95)
         self.nextBtn["state"] = DISABLED
 
+    # Read report page setup
     def read_report(self):
-        # Coming from front page
+        # Coming from main page
         self.introMsg["text"] = "Specify the report file path."
         if not self.specs:
             for btn in self.rBtn:
@@ -433,6 +451,7 @@ class App():
             self.generateReportBtn.place(x=10, y=95)
             self.generateReportBtn["command"] = self.read_report_page
 
+    # Select report file dialog (for reading)
     def read_report_dialog(self):
         self.specs["report"] = filedialog.askopenfilename()
         if not self.specs["report"]:
@@ -442,8 +461,8 @@ class App():
         self.pathEntry["state"] = DISABLED
         self.dialogBtn["state"] = DISABLED
 
+    # Enter password (if needed), view report
     def read_report_page(self):
-        # Set up page to enter report file path and password to decrypt file
         if not self.pathEntry.get():
             return
         self.pathEntry["state"] = DISABLED
@@ -491,14 +510,17 @@ class App():
         else:
             showinfo("Error", "Invalid credentials.")
 
+    # Copy report text to clipboard
     def copy_report(self):
         copy(self.reportText)
         self.copyReportBtn["text"] = "Report Copied!"
 
+    # Copy report as CSV data
     def copy_report_csv(self):
         copy(self.reportCSV)
         self.copyReportCSVBtn["text"] = "CSV Copied!"
 
+    # Send report text to email address input by user
     def send_email(self):
         admin_email = askstring("Notify Administrator",
                              "Enter email address of administrator.",
@@ -508,6 +530,7 @@ class App():
         except Exception:
             showinfo("Error", "Invalid recipient email address.")
 
+    # Check whether pwd is a FIPS-compliant password
     # Source: https://access.redhat.com/documentation/en-us/jboss_enterprise_application_platform/6.3/html/security_guide/fips_140-2_compliant_passwords
     def fips_compliant(self, pwd):
         if len(pwd) < 7:
@@ -522,12 +545,12 @@ class App():
             return False
         return True
 
-    # Restart program
+    # Restart application
     def restart(self):
         self.quit("ROOT")
         self.__init__()
 
-    # Close window according to msg value
+    # Close application
     def quit(self, msg):
         if msg == "ROOT":
             window = self.root

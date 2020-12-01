@@ -1,12 +1,13 @@
 import os
 from datetime import datetime
-from tabulate import tabulate
-from parse import *
-from report_rw import *
 from tkinter import *
 from tkinter import filedialog
 from tkinter.messagebox import showinfo
 from tkinter.simpledialog import askstring
+
+from tabulate import tabulate
+from parse import *
+from report_rw import *
 
 TABLE_FMT = "pretty"
 KNOWN_HOSTS_FILE = "~/.ssh/known_hosts"
@@ -16,6 +17,7 @@ SPAN_ERROR_TEXT = {"No Source": "No SPAN traffic source specified.",
                    "No Destination": "No SPAN traffic destination specified.",
                    "Destination Shutdown": "SPAN traffic destination is shut down."}
 
+# Return list of files in directory
 def get_files(directory):
     try:
         files = os.listdir(directory)
@@ -28,12 +30,14 @@ def get_files(directory):
             files.remove(filename)
     return files
 
+# Call appropriate report generation function
 def report_generation(specs):
     if specs["batch"]:
         batch(specs)
     else:
         individual(specs)
 
+# Perform batch analysis
 def batch(specs):
     config_folder = specs["config"]
     report_folder = specs["report"]
@@ -53,6 +57,7 @@ def batch(specs):
                 specs["Totals"][item].append([specs["Score"][item], config])
     generate_aggregate(specs, config_folder, report_folder)
 
+# Return text of report header
 def report_header(specs, config_folder):
     time_format = "%Y-%m-%d %H:%M:%S"
     if config_folder:
@@ -74,6 +79,7 @@ def report_header(specs, config_folder):
         header += "\nAuthentication: "+auth_type
     return header
 
+# Generate aggregate summary report
 def generate_aggregate(specs, config_folder, report_folder):
     aggregate_filename = os.path.join(report_folder, '')+\
                          config_folder.split('/')[-1]+"-summary.txt"
@@ -120,6 +126,7 @@ def generate_aggregate(specs, config_folder, report_folder):
     reportText += "\n\n"+resultText
     write_report(config_folder, aggregate_filename, reportText, results_csv, specs["passwd"])
 
+# Perform individual analysis
 def individual(specs):
     reportText = report_header(specs, None)
     results = parse_config(specs)
@@ -201,11 +208,11 @@ def individual(specs):
         resultText += "Suggested Score: "+http_results["Score"]+'\n'
         http_results.pop("Score", None)
         resultText += (tabulate(http_results, headers="keys", tablefmt=TABLE_FMT)+'\n\n\n')
-    if "ACL Values" in results:
-        acl_results = results["ACL Values"]
+    if "ACL Entries" in results:
+        acl_results = results["ACL Entries"]
         if len(results.keys()) > 1:
-            resultText += "ACL Values: Summary\n===================\n\n"
-        specs["Score"]["ACL Values"] = 1 if acl_results["Score"] == "Pass" else 0
+            resultText += "ACL Entries: Summary\n===================\n\n"
+        specs["Score"]["ACL Entries"] = 1 if acl_results["Score"] == "Pass" else 0
         resultText += "Suggested Score: "+acl_results["Score"]+'\n'
         acl_results.pop("Score", None)
         resultText += (tabulate(acl_results, headers="keys", tablefmt=TABLE_FMT)+'\n\n\n')
@@ -216,6 +223,7 @@ def individual(specs):
         results_csv += get_csv(results[item])+"\n\n"
     write_report(specs["config"], specs["report"], reportText, results_csv, specs["passwd"])
 
+# Return CSV-formatted report
 def get_csv(results):
     results_csv = ','.join(results.keys())+'\n'
     for key in results:
@@ -228,6 +236,7 @@ def get_csv(results):
     results_csv = results_csv[:-1]
     return results_csv
 
+# Remove entry from SSH known_hosts file if needed
 def remove_known_host(specs):
     try:
         with open(KNOWN_HOSTS_FILE, 'r') as f:
